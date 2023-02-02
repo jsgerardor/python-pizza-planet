@@ -20,6 +20,9 @@ migrate.init_app(flask_app, db)
 def test():
     return pytest.main(['-v', './app/test'])
 
+@manager.command('populate_db')
+def populate_db():
+    from app.seeds.populate_database import populate_database
 
 if __name__ == '__main__':
     manager()
