@@ -112,3 +112,12 @@ ext install ritwickdey.LiveServer
 ```bash
 python3 manage.py test
 ```
+### Populating data in the database
+
+- Make sure that you have `faker` installed
+
+- Run the command
+
+```bash
+python3 manage.py populate_db
+```
