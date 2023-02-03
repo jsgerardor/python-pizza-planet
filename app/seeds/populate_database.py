@@ -4,6 +4,8 @@ from faker import Faker
 import threading
 
 fake = Faker()
+NUMBER_OF_CLIENTS = 40
+NUMBER_OF_ORDERS = 100
 
 ingredients_name_seed = [
     "Shrimps",
@@ -86,18 +88,18 @@ def generate_client_data():
         "client_phone": fake.phone_number(),
     }
 
-def obtain_size_for_order():
+def fetch_size_for_order():
     size = SizeManager.get_all()
     return size[fake.random_int(min=0, max=len(size) - 1)]["_id"]
 
-def obtain_ingredients_for_order():
+def fetch_ingredients_for_order():
     ingredient = IngredientManager.get_all()
     ingredients = []
     for _ in range(fake.random_int(min=1, max=5)):
         ingredients.append(ingredient[fake.random_int(min=0, max=len(ingredient) - 1)]['_id'])
     return ingredients 
 
-def obtain_beverages_for_order():
+def fetch_beverages_for_order():
     beverage = BeverageManager.get_all()
     beverages = []
     for _ in range(fake.random_int(min=0, max=5)):
@@ -106,13 +108,13 @@ def obtain_beverages_for_order():
 
 def generate_order_data():
     clients = []
-    for _ in range(40):
+    for _ in range(NUMBER_OF_CLIENTS):
         clients.append(generate_client_data())
 
-    for _ in range(100):
-        size_id = obtain_size_for_order()
-        ingredients_ids = obtain_ingredients_for_order()
-        beverages_ids = obtain_beverages_for_order()
+    for _ in range(NUMBER_OF_ORDERS):
+        size_id = fetch_size_for_order()
+        ingredients_ids = fetch_ingredients_for_order()
+        beverages_ids = fetch_beverages_for_order()
         size_price = SizeManager.get_by_id(size_id).get('price')
         ingredients = IngredientManager.get_by_id_list(ingredients_ids)
         beverages = BeverageManager.get_by_id_list(beverages_ids)
