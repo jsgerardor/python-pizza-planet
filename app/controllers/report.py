@@ -55,7 +55,11 @@ class ReportController():
         _, _, _, _, order_dates_and_prices = ReportController.fetch_relevant_data_for_report()
         total_income_for_month = 0
         for order in order_dates_and_prices:
-            date = datetime.strptime(order['date'], '%Y-%m-%dT%H:%M:%S')
+            date = None
+            if (order['date'].__contains__('.')):
+                date = datetime.strptime(order['date'], '%Y-%m-%dT%H:%M:%S.%f')
+            else:
+                date = datetime.strptime(order['date'], '%Y-%m-%dT%H:%M:%S')
             if (date.year == year and date.month == month):
                 total_income_for_month += float(order['price'])
         return total_income_for_month
@@ -105,7 +109,7 @@ class ReportController():
                     '2023': {'month': ReportController.obtain_month_name(max_revenue_value_2023['month']), 'income': round(max_revenue_value_2023['total_income'], 2)}
                 }
             }
-
+            #report = ReportController.fetch_relevant_data_for_report()
             return [report], None
         except Exception as e:            
             return None, e
