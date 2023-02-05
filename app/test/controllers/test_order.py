@@ -22,6 +22,23 @@ def __create_items(items: list, controller: BaseController):
         created_items.append(created_item)
     return created_items
 
+def __create_beverages(items: list, controller: BaseController):
+    created_beverages = []
+    for beverage in items:
+        created_beverage, _ = controller.create(beverage)
+        created_beverages.append(created_beverage)
+    return created_beverages
+
+def __order_with_beverages(ingredients: list, size: dict, client_data: dict, beverages: list):
+    ingredients = [ingredient.get('_id') for ingredient in ingredients]
+    beverages = [beverage.get('_id') for beverage in beverages]
+    size_id = size.get('_id')
+    return {
+        **client_data,
+        'ingredients': ingredients,
+        'size_id': size_id,
+        'beverages': beverages
+    }
 
 def __create_sizes_and_ingredients(ingredients: list, sizes: list):
     created_ingredients = __create_items(ingredients, IngredientController)
@@ -44,6 +61,33 @@ def test_create(app, ingredients, size, client_data):
 
         ingredients_in_detail = set(item['ingredient']['_id'] for item in created_order['detail'])
         pytest.assume(not ingredients_in_detail.difference(ingredient_ids))
+
+def test_create_with_beverages(app, ingredients, size, client_data, beverages):
+    created_size, created_ingredients = __create_sizes_and_ingredients(ingredients, [size])
+    created_beverages = __create_beverages(beverages, BeverageController)
+    order_with_beverages = __order_with_beverages(created_ingredients, created_size, client_data, created_beverages)
+    created_order_with_beverages, error = OrderController.create(order_with_beverages)
+    size_id = order_with_beverages.pop('size_id', None)
+    ingredient_ids = order_with_beverages.pop('ingredients', [])
+    beverages_ids = order_with_beverages.pop('beverages', [])
+    pytest.assume(error is None)
+    for param, value in order_with_beverages.items():
+        pytest.assume(param in created_order_with_beverages)
+        pytest.assume(value == created_order_with_beverages[param])
+        pytest.assume(created_order_with_beverages['_id'])
+        pytest.assume(size_id == created_order_with_beverages['size']['_id'])
+        orders_detail = created_order_with_beverages['detail']
+        ingredients_in_detail = []
+        beverages_in_detail = []
+        for i in range(len(orders_detail)):
+            if (orders_detail[i]['ingredient']):
+                ingredients_in_detail.append(orders_detail[i]['ingredient']['_id'])
+            if (orders_detail[i]['beverage']):
+                beverages_in_detail.append(orders_detail[i]['beverage']['_id'])
+        ingredients_in_detail = set(ingredients_in_detail)
+        pytest.assume(not ingredients_in_detail.difference(ingredient_ids))
+        beverages_in_detail = set(beverages_in_detail)
+        pytest.assume(not beverages_in_detail.difference(beverages_ids))
 
 def test_calculate_order_price(app, ingredients, size, client_data):
     created_size, created_ingredients = __create_sizes_and_ingredients(ingredients, [size])
